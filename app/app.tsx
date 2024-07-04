@@ -9,7 +9,7 @@ const TRANSITIONS = ['fade', 'slide', 'none'] as const;
 const App = ({children}:any) => {
 
   return (
-    <NavigationContainer>
+    <NavigationContainer >
       
       <StatusBar
         backgroundColor="#61dafb"
