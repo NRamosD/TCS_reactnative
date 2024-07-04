@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { FlatList, GestureHandlerRootView } from "react-native-gesture-handler";
 import { SingleFinancialProduct } from "./SingleFinancialProduct";
-import { NavigationProp, ParamListBase, useNavigation } from "@react-navigation/native";
+import { NavigationProp, ParamListBase, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { AUTHOR_ID, BASE_URL } from "@/constants/env";
 import { FinancialProduct } from "@/app/types/financialProduct";
 
@@ -19,19 +19,28 @@ export function ShowFinancialProducts({searchText}:any) {
 
 
     const [isLoading, setLoading] = useState(true);
+    const [searching, setSearching] = useState(false);
     const [data, setData] = useState<FinancialProduct[]>([]);
     const [filteredData, setFilteredData] = useState<FinancialProduct[]>([]);
     useEffect(()=>{
         getFinancialProduct()
     },[])
 
+    useFocusEffect(
+      useCallback(()=>{
+        getFinancialProduct()
+      },[])
+    )
+
     
 
     useEffect(()=>{
+      setSearching(true)
       setTimeout(() => {
         const auxDataCont = [...data]
         const result = auxDataCont.filter(x=>x.name.toLowerCase().includes(searchText.toLowerCase()))
         setFilteredData(result)
+        setSearching(false)
       }, 2000);
     },[searchText])
   
@@ -69,16 +78,21 @@ export function ShowFinancialProducts({searchText}:any) {
         ) : (
           searchText.length>0?
           (
-            filteredData.map((item)=> 
-                <TouchableOpacity onPress={()=>navigateToDetail(item)}>
-                    <SingleFinancialProduct dataItem={item}/>
-                </TouchableOpacity>
+            searching?
+              <Text>Searching...</Text>
+            :(
+              filteredData.map((item, index)=> 
+                  <TouchableOpacity key={`item-loop-fp-${index}`} onPress={()=>navigateToDetail(item)}>
+                      <SingleFinancialProduct dataItem={item}/>
+                  </TouchableOpacity>
+              )
+
             )
           )
           :
           (
-            data.map((item)=> 
-                <TouchableOpacity onPress={()=>navigateToDetail(item)}>
+            data.map((item, index)=> 
+                <TouchableOpacity key={`item-loop-fp-${index}`} onPress={()=>navigateToDetail(item)}>
                     <SingleFinancialProduct dataItem={item}/>
                 </TouchableOpacity>
             )
@@ -88,6 +102,11 @@ export function ShowFinancialProducts({searchText}:any) {
             
         )}
         </ScrollView>
+        {
+          searchText.length===0?
+          <Text style={{padding:10}}>Total of results: {data.length}</Text>
+          :null
+        }
     </GestureHandlerRootView>
   );
 }

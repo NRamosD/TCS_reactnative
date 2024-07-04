@@ -1,8 +1,9 @@
 
-import { useNavigation } from "@react-navigation/native";
-import { Image, StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
+import { NavigationProp, ParamListBase, useNavigation } from "@react-navigation/native";
+import { Image, StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, ToastAndroid } from "react-native";
 import { FinancialProduct } from "../types/financialProduct";
 import formatDateToYYYYMMDD from "../utils/dates";
+import { AUTHOR_ID, BASE_URL } from "@/constants/env";
 
 
 type Movie = {
@@ -29,6 +30,80 @@ export default function DetailsScreen({route}:FinancialProductDetailScreenProps)
     const data = route.params.financialProduct
     const dateRelease = formatDateToYYYYMMDD(new Date(data.date_release))
     const dateRevision = formatDateToYYYYMMDD(new Date(data.date_revision))
+
+    const navigation: NavigationProp<ParamListBase> = useNavigation();
+
+    const confirmationDelete = (idItem:String) =>{
+        Alert.alert(
+            "Confirm delete",
+            "Are you sure to delete this product?",
+            [
+                {
+                    text:"Yes",
+                    onPress:async()=>{
+                        console.log("Deleted")
+                        const exist = await verifyExistence(idItem)
+                        if(exist){
+                            await deleteProduct(idItem)
+                            ToastAndroid.show("Item deleted successfully!", ToastAndroid.SHORT)
+                            navigation.navigate("screens/HomeScreen")
+                        }else{
+                            alert(`Item you trying to delete doesnt exist`)
+                        }
+                    }
+                },
+                {
+                    text:"No",
+                    onPress:()=>{
+                        console.log("Said no")
+                    }
+                }
+            ]
+        )
+    }
+
+
+    const verifyExistence = async (idItem:String) => {
+        try {
+          const response = await fetch(
+          BASE_URL+`/bp/products/verification?id=${idItem }`,
+          {
+              method:"GET",
+              headers: {   
+                "authorId":`${AUTHOR_ID}`,
+                "Access-Control-Allow-Origin":"*",
+                "content-type":"application/json"
+              }
+          })
+          const json = await response.json();
+          return json
+        } catch (error) {
+            console.error(error);
+            return false
+        }
+    };
+
+    const deleteProduct = async (idItem:String) => {
+        try {
+          const response = await fetch(
+          BASE_URL+`/bp/products?id=${idItem }`,
+          {
+              method:"DELETE",
+              headers: {   
+                "authorId":`${AUTHOR_ID}`,
+                "Access-Control-Allow-Origin":"*",
+                "content-type":"application/json"
+              }
+          })
+          const json = await response.json();
+        //   console.log({jsonaqui:json})
+        } catch (error) {
+            console.error(error);
+            return false
+        }
+    };
+
+
     // console.log(route.params.financialProduct)
     return(
         <View style={styles.principalContainer}>
@@ -65,7 +140,7 @@ export default function DetailsScreen({route}:FinancialProductDetailScreenProps)
                         paddingVertical:15, alignItems:"center", borderRadius:5  }}>
                         <Text style={{color:"#014a8e", fontWeight:600}}>EDIT</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={()=>alert("jaja")} 
+                <TouchableOpacity onPress={()=>confirmationDelete(data.id)} 
                         style={{ display:"flex", justifyContent:"center", marginBottom:20, backgroundColor:"#fa0000", 
                         paddingVertical:15, alignItems:"center", borderRadius:5  }}>
                         <Text style={{color:"#FFF", fontWeight:600}}>DELETE</Text>

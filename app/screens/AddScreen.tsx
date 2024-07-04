@@ -203,7 +203,7 @@ export default function AddScreen(){
                     <View>
                         <Text style={{paddingVertical:10, fontWeight:800}}>Date Release</Text>
                         <TextInput
-                            placeholder="Date Release (format:YYY-MM-DD)"
+                            placeholder="Date Release (format:YYYY-MM-DD)"
                             value={dataProduct.date_release}
                             onChangeText={(value) => handleInputChange('date_release', value)}
                             style={{ borderColor: 'gray', borderWidth: 1, borderRadius:5, marginBottom: 10, paddingHorizontal:10, paddingVertical:5 }}
